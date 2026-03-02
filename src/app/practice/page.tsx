@@ -53,6 +53,7 @@ export default function PracticePage() {
           <div className="space-y-6">
             {/* Context Window — always visible */}
             <ContextWindow
+              key={practice.currentExample.id}
               turns={practice.currentExample.context}
               collapsed={practice.step === "similarity" || practice.step === "reveal"}
             />
@@ -61,12 +62,12 @@ export default function PracticePage() {
             {(practice.step === "write" ||
               practice.step === "similarity" ||
               practice.step === "reveal") && (
-              <ResponseInput
-                value={practice.userResponse}
-                onChange={practice.setUserResponse}
-                readOnly={practice.step !== "write"}
-              />
-            )}
+                <ResponseInput
+                  value={practice.userResponse}
+                  onChange={practice.setUserResponse}
+                  readOnly={practice.step !== "write"}
+                />
+              )}
 
             {/* Score display */}
             {practice.bestScore !== null &&

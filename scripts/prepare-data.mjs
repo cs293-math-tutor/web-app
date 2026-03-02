@@ -12,7 +12,7 @@ const alternativesRaw = readFileSync(
   "utf-8"
 );
 const confirmedRaw = readFileSync(
-  join(rootDir, "data-sources", "confirmed_nope.csv"),
+  join(rootDir, "data-sources", "confirmed_nope_with_context.csv"),
   "utf-8"
 );
 
@@ -68,6 +68,9 @@ function parseContextWindow(raw) {
     if (text.length > 0) {
       turns.push({ speaker, text, isShutdown });
     }
+
+    // Stop after the shutdown turn — no post-shutdown interactions
+    if (isShutdown) break;
   }
 
   return turns;
