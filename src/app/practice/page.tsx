@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useEmbeddingWorker } from "@/hooks/useEmbeddingWorker";
 import { usePracticeState } from "@/hooks/usePracticeState";
 import ContextWindow from "@/components/ContextWindow";
@@ -10,11 +11,45 @@ import ProgressBar from "@/components/ProgressBar";
 import StepIndicator from "@/components/StepIndicator";
 import NavigationControls from "@/components/NavigationControls";
 import ModelLoadingOverlay from "@/components/ModelLoadingOverlay";
+import FrameworkIntro from "@/components/FrameworkIntro";
+import JigsawPanel from "@/components/JigsawPanel";
+import ReflectionScreen from "@/components/ReflectionScreen";
 import Link from "next/link";
+
+// First 5 examples (0-indexed) use jigsaw; last 5 use free-write
+const JIGSAW_COUNT = 5;
 
 export default function PracticePage() {
   const { embed, isModelReady, loadingProgress } = useEmbeddingWorker();
   const practice = usePracticeState(embed, isModelReady);
+
+  // Tutorial phase: "intro" → "practice"
+  const [phase, setPhase] = useState<"intro" | "practice">("intro");
+
+  // Show/hide context during write step
+  const [showContext, setShowContext] = useState(false);
+
+  const isJigsaw = practice.currentIndex < JIGSAW_COUNT;
+
+  // When moving to write step, reset showContext
+  function handleWriteStep() {
+    setShowContext(false);
+    practice.goToWriteStep();
+  }
+
+  // Jigsaw complete → move to next example directly
+  function handleJigsawComplete() {
+    practice.goToNext();
+  }
+
+  if (phase === "intro") {
+    return <FrameworkIntro onComplete={() => setPhase("practice")} />;
+  }
+
+  // All examples done → reflection screen
+  if (practice.isDone) {
+    return <ReflectionScreen />;
+  }
 
   if (!practice.currentExample) {
     return (
@@ -23,6 +58,14 @@ export default function PracticePage() {
       </div>
     );
   }
+
+  // Context collapsed: during similarity/reveal always collapsed.
+  // During write step for free-write: collapsed unless showContext toggled on.
+  // During jigsaw write step: NOT collapsed (teacher sees full context).
+  const contextCollapsed =
+    practice.step === "similarity" ||
+    practice.step === "reveal" ||
+    (practice.step === "write" && !isJigsaw && !showContext);
 
   return (
     <>
@@ -55,13 +98,22 @@ export default function PracticePage() {
             <ContextWindow
               key={practice.currentExample.id}
               turns={practice.currentExample.context}
-              collapsed={practice.step === "similarity" || practice.step === "reveal"}
+              collapsed={contextCollapsed}
             />
 
-            {/* Write step */}
-            {(practice.step === "write" ||
-              practice.step === "similarity" ||
-              practice.step === "reveal") && (
+            {/* Jigsaw matching (first 5 examples, write step) */}
+            {isJigsaw && practice.step === "write" && (
+              <JigsawPanel
+                alternatives={practice.currentExample.alternatives}
+                onComplete={handleJigsawComplete}
+              />
+            )}
+
+            {/* Free-write (last 5 examples, write step) */}
+            {!isJigsaw &&
+              (practice.step === "write" ||
+                practice.step === "similarity" ||
+                practice.step === "reveal") && (
                 <ResponseInput
                   value={practice.userResponse}
                   onChange={practice.setUserResponse}
@@ -70,14 +122,14 @@ export default function PracticePage() {
               )}
 
             {/* Score display */}
-            {practice.bestScore !== null &&
-              (practice.step === "similarity" ||
-                practice.step === "reveal") && (
+            {!isJigsaw &&
+              practice.bestScore !== null &&
+              (practice.step === "similarity" || practice.step === "reveal") && (
                 <SimilarityGauge score={practice.bestScore} />
               )}
 
-            {/* Alternatives reveal */}
-            {practice.step === "reveal" && practice.scores && (
+            {/* Alternatives reveal — write examples only */}
+            {!isJigsaw && practice.step === "reveal" && practice.scores && (
               <AlternativesPanel
                 alternatives={practice.currentExample.alternatives}
                 scores={practice.scores}
@@ -94,11 +146,14 @@ export default function PracticePage() {
               canGoBack={practice.currentIndex > 0}
               canCheck={practice.userResponse.trim().length > 0}
               isComputing={practice.isComputing}
+              isJigsaw={isJigsaw}
+              showContext={showContext}
               onPrevious={practice.goToPrevious}
               onNext={practice.goToNext}
-              onWriteStep={practice.goToWriteStep}
+              onWriteStep={handleWriteStep}
               onCheck={practice.checkSimilarity}
               onRevise={practice.revise}
+              onToggleContext={() => setShowContext((v) => !v)}
             />
           </div>
         </div>

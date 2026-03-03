@@ -23,13 +23,14 @@ export interface Example {
 
 export const FRAMEWORK_INFO: Record<
   keyof Alternatives,
-  { label: string; citation: string; description: string }
+  { label: string; citation: string; description: string; paperUrl?: string }
 > = {
   dialogicTeaching: {
     label: "Dialogic Teaching",
     citation: "Alexander, 2018",
     description:
       "Promotes interthinking by distributing authority across the classroom through reciprocal dialogue.",
+    paperUrl: "https://doi.org/10.1080/0305764X.2017.1389666",
   },
   productiveFailure: {
     label: "Productive Failure",
@@ -48,6 +49,7 @@ export const FRAMEWORK_INFO: Record<
     citation: "Chin, 2007",
     description:
       "Shifts focus from the answer to the reasoning process, maintaining high cognitive demand.",
+    paperUrl: "https://doi.org/10.1002/tea.20171",
   },
 };
 

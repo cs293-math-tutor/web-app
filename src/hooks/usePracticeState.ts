@@ -20,6 +20,7 @@ interface PracticeState {
   scores: Record<keyof Alternatives, number> | null;
   isComputing: boolean;
   responses: Record<string, ResponseRecord>;
+  isDone: boolean;
 }
 
 export function usePracticeState(
@@ -36,6 +37,7 @@ export function usePracticeState(
       scores: null,
       isComputing: false,
       responses: saved?.responses ?? {},
+      isDone: false,
     };
   });
 
@@ -45,7 +47,7 @@ export function usePracticeState(
   // Persist to localStorage on meaningful changes
   useEffect(() => {
     const persisted: PersistedState = {
-      version: 1,
+      version: 2,
       currentIndex: state.currentIndex,
       responses: state.responses,
     };
@@ -110,15 +112,24 @@ export function usePracticeState(
     }));
   }, []);
 
+  const goToReveal = useCallback(() => {
+    setState((s) => ({ ...s, step: "reveal" }));
+  }, []);
+
   const goToNext = useCallback(() => {
-    setState((s) => ({
-      ...s,
-      currentIndex: Math.min(s.currentIndex + 1, examples.length - 1),
-      step: "context",
-      userResponse: "",
-      bestScore: null,
-      scores: null,
-    }));
+    setState((s) => {
+      if (s.currentIndex >= examples.length - 1) {
+        return { ...s, isDone: true };
+      }
+      return {
+        ...s,
+        currentIndex: s.currentIndex + 1,
+        step: "context",
+        userResponse: "",
+        bestScore: null,
+        scores: null,
+      };
+    });
   }, []);
 
   const goToPrevious = useCallback(() => {
@@ -140,6 +151,7 @@ export function usePracticeState(
     setUserResponse,
     checkSimilarity,
     revise,
+    goToReveal,
     goToNext,
     goToPrevious,
   };

@@ -11,7 +11,7 @@ export interface ResponseRecord {
 }
 
 export interface PersistedState {
-  version: 1;
+  version: 2;
   currentIndex: number;
   responses: Record<string, ResponseRecord>;
 }
@@ -22,7 +22,7 @@ export function loadState(): PersistedState | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (parsed.version !== 1) return null;
+    if (parsed.version !== 2) return null;
     return parsed;
   } catch {
     return null;
