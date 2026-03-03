@@ -50,12 +50,20 @@ export default function NavigationControls({
 
       <div className="flex items-center gap-2">
         {step === "context" && (
-          <button
-            onClick={onWriteStep}
-            className="rounded-lg bg-slate-blue-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-blue-600 active:scale-[0.98]"
-          >
-            Write Your Response
-          </button>
+          <>
+            <button
+              onClick={onNext}
+              className="rounded-lg border border-sand-200 bg-white px-4 py-2 text-sm font-medium text-sand-600 transition-all hover:bg-sand-50 hover:border-sand-300"
+            >
+              Skip
+            </button>
+            <button
+              onClick={onWriteStep}
+              className="rounded-lg bg-slate-blue-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-blue-600 active:scale-[0.98]"
+            >
+              Write Your Response
+            </button>
+          </>
         )}
 
         {step === "write" && (
